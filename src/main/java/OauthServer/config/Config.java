@@ -5,16 +5,12 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,7 +23,6 @@ import org.springframework.security.oauth2.server.authorization.client.InMemoryR
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -41,8 +36,6 @@ import java.util.UUID;
 
 @Configuration
 public class Config {
-
-    private static final Logger log = LoggerFactory.getLogger(Config.class);
 
     @Bean
     UserDetailsService userDetailsService() {
@@ -86,6 +79,7 @@ public class Config {
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
 
+        /*
         RegisteredClient registeredClient = RegisteredClient
                 .withId(UUID.randomUUID().toString())
                 .clientId("client")
@@ -93,6 +87,16 @@ public class Config {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("http://localhost:8080/login/oauth2/code/my_authorization_server")
+                .scope(OidcScopes.OPENID)
+                .build();
+        */
+
+        RegisteredClient registeredClient = RegisteredClient
+                .withId(UUID.randomUUID().toString())
+                .clientId("client")
+                .clientSecret("secret")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .scope(OidcScopes.OPENID)
                 .build();
 
