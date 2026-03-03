@@ -8,6 +8,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
@@ -27,6 +28,7 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -56,13 +58,17 @@ public class Config {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
                 new OAuth2AuthorizationServerConfigurer();
 
-        return  http
-                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+        http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
                 .with(authorizationServerConfigurer, (s) -> s.oidc(Customizer.withDefaults()))
-                .exceptionHandling((e) ->
-                        e.authenticationEntryPoint(
-                                new LoginUrlAuthenticationEntryPoint("/login")))
-                .build();
+                .exceptionHandling((exceptions) -> {
+                    // ВАЖНО: Перенаправляем на /login только HTML запросы (браузер)
+                    exceptions.defaultAuthenticationEntryPointFor(
+                            new LoginUrlAuthenticationEntryPoint("/login"),
+                            new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                    );
+                });
+
+        return http.build();
     }
 
     @Bean
@@ -84,7 +90,7 @@ public class Config {
                 .clientSecret("secret")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:8080")
+                .redirectUri("http://localhost:8080/login/oauth2/code/my_authorization_server")
                 .scope(OidcScopes.OPENID)
                 .build();
 
